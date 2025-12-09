@@ -7,10 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Serif+SC:wght@500&display=swap" rel="stylesheet">
     <style>
-        /* --- 核心修正：全局盒模型 --- */
-        /* 这行代码保证 padding 不会把盒子撑大，是解决溢出的关键 */
-        * { box-sizing: border-box; } 
-
+        /* --- 核心变量 --- */
         :root {
             --primary-green: #5D8C62;
             --soft-white: #FDFBF7;
@@ -20,8 +17,8 @@
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             overflow-x: hidden; font-family: 'ZCOOL KuaiLe', cursive;
-            -webkit-text-size-adjust: 100%;
-            -webkit-tap-highlight-color: transparent;
+            -webkit-text-size-adjust: 100%; /* 禁止手机横屏字体自动放大 */
+            -webkit-tap-highlight-color: transparent; /* 去除点击高亮 */
         }
 
         /* --- 启动页 --- */
@@ -83,16 +80,17 @@
             pointer-events: none; mix-blend-mode: multiply; z-index: 10; opacity: 0.3;
         }
 
+        /* 动画定义 */
         @keyframes deepBreath { from { transform: scale(1); } to { transform: scale(1.03); } }
         @keyframes subtleSway { from { transform: translateX(-1%) scale(1.02); } to { transform: translateX(1%) scale(1.02); } }
         @keyframes grassWave { from { transform: skewX(-1deg) scale(1.05); } to { transform: skewX(1deg) scale(1.05); } }
         @keyframes rayShift { from { background-position: 0% 0%; } to { background-position: 50% 50%; } }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-        /* --- 笔记本 --- */
+        /* --- 笔记本容器 (响应式核心) --- */
         .main-notebook {
-            max-width: 700px; 
-            width: 90%;       
+            max-width: 700px; /* 电脑端最大宽度 */
+            width: 90%;       /* 手机端占屏幕宽度的90% */
             margin: 60px auto; 
             background: var(--soft-white); 
             border-radius: 10px;
@@ -106,95 +104,58 @@
         .main-notebook::after { content: ''; position: absolute; left: 15px; top: 20px; bottom: 20px; width: 10px; border-left: 3px dotted #bbb; }
         h1.page-title { text-align: center; color: #556B2F; font-size: 2.2em; margin-bottom: 40px; text-shadow: 2px 2px 0 #fff; }
 
-        /* --- 模块通用 (修正溢出问题) --- */
+        /* --- 模块样式 --- */
         .section-card {
             background: white; border: 2px solid #E0E0E0; border-radius: 15px;
             padding: 25px; margin-bottom: 30px; position: relative;
             box-shadow: 5px 5px 0px rgba(0,0,0,0.05); transition: transform 0.2s;
-            margin-left: 20px;
-            /* 关键点 1：让白框成为绝对边界 */
-            width: auto; 
-            max-width: 100%;
-            overflow: hidden; /* 任何超出的东西都会被切掉 */
+            margin-left: 20px; /* 电脑端给装订线留空 */
         }
+        .section-card:hover { transform: translateY(-2px); box-shadow: 5px 8px 0px rgba(0,0,0,0.1); }
         .section-icon { position: absolute; right: 10px; top: -15px; font-size: 2.5em; background: white; padding: 0 5px; border-radius: 50%; }
         
+        /* 每日一句 */
         #daily-quote { font-size: 1.2em; color: #444; text-align: center; min-height: 50px; line-height: 1.6; }
         .btn-flower { background: #FF9AA2; color: white; border: none; padding: 8px 25px; border-radius: 20px; display: block; margin: 15px auto 0; cursor: pointer; font-family: inherit; font-size: 1em; }
 
-        /* --- 功能2：卡西法 (修正溢出问题) --- */
-        .calcifer-box { 
-            display: flex; gap: 8px; margin-top: 15px; 
-            width: 100%; /* 占满白框内部宽度 */
-            max-width: 100%; /* 不允许超出 */
-        }
+        /* 卡西法 */
+        .calcifer-box { display: flex; gap: 8px; margin-top: 15px; }
         .calcifer-btn { background: var(--accent-orange); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; white-space: nowrap; font-family: inherit;}
-        #anxiety-input { 
-            flex: 1; /* 自动占据剩余空间 */
-            padding: 10px; 
-            border: 2px solid #ddd; 
-            border-radius: 8px; 
-            outline: none; 
-            font-family: inherit;
-            /* 关键点 2：输入框彻底限制 */
-            width: 100%; 
-            min-width: 0; /* 防止 flex 子项无法收缩 */
-            max-width: 100%; 
-        }
+        #anxiety-input { flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 8px; outline: none; font-family: inherit; }
 
-        /* --- 答题 --- */
-        .quiz-container { position: relative; min-height: 250px; margin-top: 20px; max-width: 100%; }
-        .quiz-step { display: none; animation: slideIn 0.4s ease; width: 100%; }
+        /* 答题部分 */
+        .quiz-container { position: relative; min-height: 250px; margin-top: 20px; }
+        .quiz-step { display: none; animation: slideIn 0.4s ease; }
         .quiz-step.active { display: block; }
-        .quiz-question-text { font-size: 1.2em; font-weight: bold; color: #2E7D32; display: block; margin-bottom: 15px; line-height: 1.4; word-wrap: break-word;}
-        .quiz-option-btn { background: #F1F8E9; border: 1px solid #C5E1A5; padding: 12px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: 0.2s; font-size: 1em; word-break: break-all; width: 100%; }
+        .quiz-question-text { font-size: 1.2em; font-weight: bold; color: #2E7D32; display: block; margin-bottom: 15px; line-height: 1.4; }
+        .quiz-option-btn { background: #F1F8E9; border: 1px solid #C5E1A5; padding: 12px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: 0.2s; font-size: 1em; }
+        .quiz-option-btn:active { transform: scale(0.98); } /* 手机端点击反馈 */
         .quiz-option-btn.selected { background: #AED581; color: white; border-color: #7CB342; }
-        .input-line { border: none; border-bottom: 2px dashed #888; background: transparent; width: 100%; font-size: 1.1em; outline: none; padding: 5px 0; border-radius: 0; max-width: 100%; }
-        .quiz-controls { display: flex; align-items: center; margin-top: 20px; gap: 15px; flex-wrap: wrap; }
-        .progress-bar { flex: 1; height: 10px; background: #eee; border-radius: 5px; overflow: hidden; min-width: 50px;}
+        .input-line { border: none; border-bottom: 2px dashed #888; background: transparent; width: 100%; font-size: 1.1em; outline: none; padding: 5px 0; border-radius: 0; }
+        .quiz-controls { display: flex; align-items: center; margin-top: 20px; gap: 15px; }
+        .progress-bar { flex: 1; height: 10px; background: #eee; border-radius: 5px; overflow: hidden; }
         .progress-fill { height: 100%; background: #66BB6A; width: 0%; transition: width 0.3s; }
-        .btn-next { background: #26A69A; color: white; border: none; padding: 10px 25px; border-radius: 20px; cursor: pointer; font-family: inherit; font-size: 1em; white-space: nowrap; }
+        .btn-next { background: #26A69A; color: white; border: none; padding: 10px 25px; border-radius: 20px; cursor: pointer; font-family: inherit; font-size: 1em; }
         @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
 
-        /* --- 检查清单 --- */
+        /* 检查清单 Grid */
         .checklist-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 1.1em; }
         .checklist-grid label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
-        .checklist-grid input { transform: scale(1.2); flex-shrink: 0; }
+        .checklist-grid input { transform: scale(1.2); }
 
         /* --- 弹窗 --- */
         .modal { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.8); z-index: 2000; 
             justify-content: center; align-items: center; 
-            padding: 20px;
+            padding: 20px; box-sizing: border-box; /* 防止弹窗撑破屏幕 */
         }
-        
-        /* --- 功能5：刮刮乐 (修正溢出问题) --- */
-        .scratch-wrapper { 
-            border: 4px solid #8D6E63; 
-            border-radius: 10px; 
-            /* 关键点 3：宽度改为百分比，用 max-width 限制最大值 */
-            width: 100%; 
-            max-width: 280px; 
-            margin: 0 auto; 
-            position: relative; 
-            overflow: hidden; 
-            touch-action: none; 
-            /* 保持宽高比 2:1，防止压扁 */
-            aspect-ratio: 2 / 1;
-        }
-        /* 强制 Canvas 随 wrapper 缩放 */
-        #scratch-canvas {
-            width: 100% !important;
-            height: 100% !important;
-            display: block;
-        }
-
+        .scratch-wrapper { border: 4px solid #8D6E63; border-radius: 10px; width: 280px; height: 140px; margin: 0 auto; position: relative; overflow: hidden; touch-action: none; /* 防止手机端刮卡时页面滚动 */ }
         .music-control { position: fixed; bottom: 20px; right: 20px; width: 45px; height: 45px; background: white; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 1000; font-size: 20px; }
         .soot { position: absolute; width: 12px; height: 12px; background: #333; border-radius: 50%; pointer-events: none; z-index: 9999; }
 
         /* =========================================
-           📱 移动端适配 (最终修复)
+           📱 移动端适配 (Media Queries) - 核心魔法
            ========================================= */
         @media screen and (max-width: 768px) {
             #start-overlay h1 { font-size: 2em; }
@@ -202,36 +163,35 @@
             
             .main-notebook {
                 margin: 20px auto; 
-                width: 92%; 
-                padding: 25px 15px; /* 笔记本内边距 15px */
+                width: 92%; /* 宽度撑满 */
+                padding: 25px 15px; /* 内边距缩小 */
                 min-height: 85vh;
             }
-            .main-notebook::after { left: 5px; border-left: 1px dotted #bbb; }
+            .main-notebook::after { left: 8px; border-left: 2px dotted #bbb; } /* 装订线微调 */
             
             h1.page-title { font-size: 1.8em; margin-bottom: 25px; }
             
             .section-card { 
-                margin-left: 0; 
-                padding: 15px; /* 白框内边距 15px */
-                width: 100%; /* 确保白框不超笔记本 */
+                margin-left: 0; /* 取消左侧留白 */
+                padding: 15px; 
             }
             .section-icon { font-size: 2em; top: -20px; right: 5px; }
 
-            /* 文本框强制换行，宽度占满 */
+            /* 卡西法手机适配：上下排列 */
             .calcifer-box { flex-direction: column; }
             .calcifer-btn { width: 100%; margin-top: 5px; }
-            #anxiety-input { width: 100%; max-width: 100%; }
 
+            /* 检查清单手机适配：单列 */
             .checklist-grid { grid-template-columns: 1fr; font-size: 1.05em; }
             .checklist-grid label { padding: 5px 0; border-bottom: 1px dashed #eee; }
 
-            /* 刮刮乐在手机上也强制 100% 宽（但不超过280） */
-            .scratch-wrapper { 
-                width: 100%; 
-                max-width: 280px; 
-            }
+            /* 刮刮乐适配 */
+            .scratch-wrapper { width: 100%; max-width: 280px; }
 
+            /* 弹窗适配 */
             .modal > div { width: 100% !important; padding: 25px 15px !important; max-height: 85vh; overflow-y: auto; }
+            
+            /* 背景图适配 */
             .layer-mid-grass { height: 50%; background-position: center bottom; }
             .layer-fore-flowers { height: 35%; background-position: center bottom; }
         }
@@ -341,6 +301,7 @@
             overlay.style.opacity = '0';
             setTimeout(() => overlay.remove(), 1000);
             bgm.volume = 0.5;
+            // 尝试播放，处理自动播放策略
             const playPromise = bgm.play();
             if (playPromise !== undefined) {
                 playPromise.catch(error => { console.log("等待交互播放"); });
@@ -406,46 +367,29 @@
         }
         renderQ();
 
-        // 4. 刮刮乐 (带缩放自适应计算)
-        const cvs = document.getElementById('scratch-canvas'); 
-        const ctx = cvs.getContext('2d'); 
-        let draw = false;
-        
-        ctx.fillStyle = '#C0C0C0'; 
-        ctx.fillRect(0,0,280,140); 
-        ctx.fillStyle = '#666'; 
-        ctx.font='20px Arial'; 
-        ctx.fillText("✨ 刮开惊喜 ✨", 80, 80);
-        
+        // 4. 刮刮乐 (增加手机触摸支持)
+        const cvs = document.getElementById('scratch-canvas'); const ctx = cvs.getContext('2d'); let draw = false;
+        ctx.fillStyle = '#C0C0C0'; ctx.fillRect(0,0,280,140); ctx.fillStyle = '#666'; ctx.font='20px Arial'; ctx.fillText("✨ 刮开惊喜 ✨", 80, 80);
         function scratch(e) { 
             if(!draw) return; 
             e.preventDefault(); 
-            
             const r = cvs.getBoundingClientRect(); 
+            // 兼容触摸和鼠标
             const clientX = e.clientX || e.touches[0].clientX;
             const clientY = e.clientY || e.touches[0].clientY;
-            
             const x = clientX - r.left; 
             const y = clientY - r.top; 
-            
-            // 关键：计算Canvas的CSS显示大小和实际像素大小的比例
-            const scaleX = cvs.width / r.width;
-            const scaleY = cvs.height / r.height;
-
             ctx.globalCompositeOperation = 'destination-out'; 
-            ctx.beginPath(); 
-            // 将鼠标坐标乘以缩放比例，映射回Canvas内部坐标
-            ctx.arc(x * scaleX, y * scaleY, 15, 0, Math.PI*2); 
-            ctx.fill(); 
+            ctx.beginPath(); ctx.arc(x,y,15,0,Math.PI*2); ctx.fill(); 
         }
-        
         cvs.addEventListener('mousedown',()=>draw=true); cvs.addEventListener('mouseup',()=>draw=false); cvs.addEventListener('mousemove',scratch); 
-        cvs.addEventListener('touchstart',(e)=>{draw=true;scratch(e)}, {passive: false}); 
+        cvs.addEventListener('touchstart',(e)=>{draw=true;scratch(e)}, {passive: false}); // passive: false 允许 preventDefault
         cvs.addEventListener('touchmove',scratch, {passive: false}); 
         cvs.addEventListener('touchend',()=>draw=false);
 
-        // 5. 鼠标/手指 小煤球
+        // 5. 鼠标/手指 小煤球特效
         document.addEventListener('mousemove', createSoot);
+        // 手机点击时也生成小煤球
         document.addEventListener('click', (e) => { createSoot(e); createSoot(e); });
 
         function createSoot(e) {
@@ -453,7 +397,7 @@
                 const s = document.createElement('div'); s.className='soot'; 
                 const px = e.pageX || (e.changedTouches ? e.changedTouches[0].pageX : 0);
                 const py = e.pageY || (e.changedTouches ? e.changedTouches[0].pageY : 0);
-                if (!px && !py) return; 
+                if (!px && !py) return; // 容错
                 s.style.left = px + 'px'; 
                 s.style.top = py + 'px'; 
                 document.body.appendChild(s); 
