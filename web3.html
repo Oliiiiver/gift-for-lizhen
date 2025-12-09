@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>给李祯的奇迹应援 ✨</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Serif+SC:wght@500&display=swap" rel="stylesheet">
+    <style>
+        /* --- 核心变量 --- */
+        :root {
+            --primary-green: #5D8C62;
+            --soft-white: #FDFBF7;
+            --sky-top: #89C4F4;  /* 动漫蓝 */
+            --sky-bottom: #D4F1F4;
+            --accent-orange: #FF8C42; 
+        }
+
+        /* --- 基础设置 (修复背景被遮挡的关键) --- */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            font-family: 'ZCOOL KuaiLe', cursive;
+            /* 去掉了背景色，防止遮挡风景 */
+        }
+
+        /* --- 0. 启动页 --- */
+        #start-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #89C4F4; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 1s; cursor: pointer;
+        }
+        #start-overlay h1 { color: white; font-size: 3em; animation: bounce 2s infinite; text-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .start-hint { margin-top: 20px; color: white; font-size: 1.5em; background: rgba(255,255,255,0.3); padding: 10px 30px; border-radius: 30px; }
+
+        /* --- 1. 全新升级：吉卜力绘本风童话背景 --- */
+        #scenery-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0; overflow: hidden;
+            /* 天空基调：更柔和的蓝绿渐变 */
+            background: linear-gradient(to bottom, #A1C4FD 0%, #C2E9FB 60%, #D4F1F4 100%);
+        }
+
+        /* 全局纹理叠加：模拟老纸张/水彩画的颗粒感 */
+        #scenery-container::after {
+            content: '';
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            /* 一个极其微小的噪点图案，用于打破数字感 */
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+            pointer-events: none;
+            mix-blend-mode: overlay;
+            opacity: 0.4;
+            z-index: 10;
+        }
+
+        /* --- 光影魔法：丁达尔光柱 (God Rays) --- */
+        .god-rays {
+            position: absolute;
+            top: -20%; right: -10%;
+            width: 100%; height: 150%;
+            background: repeating-linear-gradient(
+                -45deg,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.1) 5%,
+                rgba(255, 255, 255, 0) 10%
+            );
+            transform-origin: top right;
+            animation: rayRotate 60s linear infinite;
+            pointer-events: none;
+            mix-blend-mode: soft-light;
+        }
+
+        /* 升级版太阳：更柔和的光晕 */
+        .sun {
+            position: absolute; top: 5%; right: 8%; width: 120px; height: 120px;
+            background: radial-gradient(circle, #FFFBEA 10%, rgba(255,241,190,0.8) 40%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            filter: blur(10px);
+            animation: glow 6s infinite alternate ease-in-out;
+        }
+
+        /* --- 水彩风云朵 (使用box-shadow堆叠制造蓬松感) --- */
+        .cloud-painterly {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            /* 关键：用多层柔焦阴影模拟水彩晕染 */
+            box-shadow: 
+                30px 10px 40px rgba(255, 255, 255, 0.9),
+                -30px 10px 40px rgba(255, 255, 255, 0.9),
+                0px 40px 60px rgba(230, 245, 255, 0.6);
+        }
+        .c1 { width: 180px; height: 60px; top: 18%; left: -200px; animation: floatCloud 50s linear infinite; opacity: 0.9; }
+        .c2 { width: 250px; height: 80px; top: 28%; left: -300px; animation: floatCloud 70s linear infinite 8s; opacity: 0.7; transform: scale(1.2); }
+        .c3 { width: 120px; height: 40px; top: 10%; left: -150px; animation: floatCloud 35s linear infinite 20s; opacity: 0.6; }
+
+        /* --- 层次丰富的山丘 --- */
+        
+        /* 远山：空气感，蓝色调，朦胧 */
+        .mountain-far {
+            position: absolute; bottom: 15%; left: -20%; width: 150%; height: 400px;
+            background: linear-gradient(to bottom, #89a7b1 0%, #a3c6d0 100%);
+            border-radius: 100% 100% 0 0; opacity: 0.6;
+            filter: blur(2px);
+        }
+
+        /* 中景山：受光面，带一点暖绿 */
+        .mountain-mid {
+            position: absolute; bottom: 5%; right: -30%; width: 140%; height: 450px;
+            background: linear-gradient(15deg, #6FA38B 20%, #8FBDA6 80%);
+            border-radius: 80% 100% 0 0;
+            box-shadow: inset 0 10px 30px rgba(255,255,255,0.2); /* 顶部受光 */
+        }
+        /* 中景装饰：一些模糊的小树丛 */
+        .mountain-mid::after {
+            content: ''; position: absolute; bottom: 380px; left: 30%;
+            width: 60px; height: 60px; background: #5A8A75; border-radius: 50%;
+            box-shadow: 80px 20px 0 #5A8A75, 150px -10px 0 50px #5A8A75;
+            filter: blur(5px); opacity: 0.6;
+        }
+
+        /* 前景草地：细节丰富，色彩深沉 */
+        .grass-front {
+            position: absolute; bottom: -80px; width: 120%; height: 280px; left: -10%;
+            /* 使用径向渐变模拟起伏和光影 */
+            background: radial-gradient(ellipse at top center, #7EB293 0%, #4A7045 60%, #2E4F2B 100%);
+            border-radius: 50% 80% 0 0;
+            transform: rotate(-3deg);
+            box-shadow: 0 -10px 20px rgba(0,0,0,0.1);
+        }
+        /* 前景装饰：更清晰的植被剪影 */
+        .grass-front::before {
+            content: '🌿'; font-size: 40px; position: absolute; top: 30px; left: 15%; 
+            color: #365A33; text-shadow: 50px 20px 0 #2E4F2B, 120px -10px 0 #365A33; opacity: 0.5;
+        }
+
+        /* 前景遮挡灌木（增加景深） */
+        .bush-foreground {
+            position: absolute; bottom: -30px;
+            background: #2A4828; border-radius: 50%;
+            filter: blur(1px);
+        }
+        .bf1 { width: 150px; height: 120px; left: -20px; box-shadow: 80px 30px 0 #335230; }
+        .bf2 { width: 180px; height: 140px; right: -30px; box-shadow: -90px 40px 0 #2E4F2B; }
+
+        /* 飘落的花瓣/光点容器 (沿用之前的，很好) */
+        #particle-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;
+        }
+
+        /* 动画优化 */
+        @keyframes floatCloud { from { transform: translateX(-100px); } to { transform: translateX(130vw); } }
+        @keyframes glow { from { transform: scale(1); opacity: 0.9; } to { transform: scale(1.1); opacity: 0.7; } }
+        @keyframes rayRotate { from { transform: rotate(0deg); } to { transform: rotate(10deg); } }
+
+
+        /* --- 2. 主容器：笔记本风格 --- */
+        .main-notebook {
+            max-width: 700px;
+            margin: 60px auto;
+            background: var(--soft-white);
+            border-radius: 10px;
+            /* 增加层级，确保在风景上面 */
+            position: relative;
+            z-index: 10; 
+            
+            box-shadow: 
+                0 0 0 5px rgba(255,255,255,0.3),
+                0 30px 60px rgba(0,50,0,0.3);
+            padding: 40px;
+            min-height: 80vh;
+            background-image: repeating-linear-gradient(#FDFBF7 0px, #FDFBF7 29px, #E1E8EE 30px);
+        }
+        
+        /* 螺旋装订孔 */
+        .main-notebook::after {
+            content: ''; position: absolute; left: 15px; top: 20px; bottom: 20px; width: 10px;
+            border-left: 3px dotted #bbb;
+        }
+
+        h1.page-title {
+            text-align: center; color: #556B2F; font-size: 2.2em;
+            margin-bottom: 40px; text-shadow: 2px 2px 0 #fff;
+        }
+
+        /* --- 3. 模块通用样式 --- */
+        .section-card {
+            background: white; border: 2px solid #E0E0E0; border-radius: 15px;
+            padding: 25px; margin-bottom: 30px; position: relative;
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.05); transition: transform 0.2s;
+            margin-left: 20px; /* 避开装订线 */
+        }
+        .section-card:hover { transform: translateY(-2px); box-shadow: 5px 8px 0px rgba(0,0,0,0.1); }
+        .section-icon { position: absolute; right: 10px; top: -15px; font-size: 2.5em; background: white; padding: 0 5px; border-radius: 50%; }
+
+        /* 每日激励 */
+        #daily-quote { font-size: 1.2em; color: #444; text-align: center; min-height: 50px; line-height: 1.6; }
+        .btn-flower { background: #FF9AA2; color: white; border: none; padding: 8px 25px; border-radius: 20px; display: block; margin: 15px auto 0; cursor: pointer; font-family: inherit; }
+
+        /* 焦虑火炉 */
+        .calcifer-box { display: flex; gap: 8px; margin-top: 15px; }
+        .calcifer-btn { background: var(--accent-orange); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; white-space: nowrap;}
+        #anxiety-input { flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 8px; outline: none; font-family: inherit; }
+
+        /* 答题部分 */
+        .quiz-container { position: relative; min-height: 250px; margin-top: 20px; }
+        .quiz-step { display: none; animation: slideIn 0.4s ease; }
+        .quiz-step.active { display: block; }
+        
+        .quiz-question-text { font-size: 1.2em; font-weight: bold; color: #2E7D32; display: block; margin-bottom: 15px; }
+        .quiz-option-btn {
+            background: #F1F8E9; border: 1px solid #C5E1A5; padding: 12px; border-radius: 8px;
+            margin-bottom: 8px; cursor: pointer; transition: 0.2s; font-size: 1em;
+        }
+        .quiz-option-btn:hover { background: #DCEDC8; transform: translateX(5px); }
+        .quiz-option-btn.selected { background: #AED581; color: white; border-color: #7CB342; }
+        .input-line { border: none; border-bottom: 2px dashed #888; background: transparent; width: 100%; font-size: 1.1em; outline: none; padding: 5px 0; }
+
+        .quiz-controls { display: flex; align-items: center; margin-top: 20px; gap: 15px; }
+        .progress-bar { flex: 1; height: 10px; background: #eee; border-radius: 5px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #66BB6A; width: 0%; transition: width 0.3s; }
+        .btn-next { background: #26A69A; color: white; border: none; padding: 10px 25px; border-radius: 20px; cursor: pointer; font-family: inherit; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* --- 弹窗 (整合了你的羊皮卷代码) --- */
+        .modal { 
+            display: none; 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.8); /* 背景改深一点，突出中间的魔法信 */
+            z-index: 2000; 
+            justify-content: center; align-items: center; 
+            overflow-y: auto; /* 防止小屏幕显示不全 */
+        }
+        
+        /* 刮刮乐 */
+        .scratch-wrapper { border: 4px solid #8D6E63; border-radius: 10px; width: 280px; height: 140px; margin: 0 auto; position: relative; overflow: hidden; }
+        
+        /* 音乐按钮 */
+        .music-control { position: fixed; bottom: 20px; right: 20px; width: 45px; height: 45px; background: white; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 1000; font-size: 20px; }
+        .soot { position: absolute; width: 12px; height: 12px; background: #333; border-radius: 50%; pointer-events: none; z-index: 9999; }
+
+    </style>
+</head>
+<body>
+
+    <div id="start-overlay" onclick="enterWorld()">
+        <h1>🍃 祯祯的备考世界</h1>
+        <div class="start-hint">👉 点击进入魔法庭院 👈</div>
+        <p style="color:white; margin-top:10px; font-size: 0.9em;">(记得打开声音哦)</p>
+    </div>
+
+    <audio id="bgm" loop>
+        <source src="arrietty.mp3" type="audio/mp3">
+        <source src="https://commondatastorage.googleapis.com/codeskulptor-assets/Epoq-Lepidoptera.ogg" type="audio/ogg"> 
+    </audio>
+
+<div id="scenery-container">
+        <div class="god-rays"></div>
+        <div class="sun"></div>
+        
+        <div class="cloud-painterly c1"></div>
+        <div class="cloud-painterly c3"></div>
+        <div class="cloud-painterly c2"></div>
+        
+        <div class="mountain-far"></div>
+        <div class="mountain-mid"></div>
+        <div class="grass-front"></div>
+        
+        <div class="bush-foreground bf1"></div>
+        <div class="bush-foreground bf2"></div>
+
+        <div id="particle-container"></div>
+    </div>
+
+    <div class="main-notebook">
+        <h1 class="page-title">✨ 考前能量补给站 ✨</h1>
+
+        <div class="section-card">
+            <div class="section-icon">☀️</div>
+            <h3>今日份元气</h3>
+            <div id="daily-quote">加载中...</div>
+            <button class="btn-flower" onclick="updateQuote()">🌸 换一句</button>
+        </div>
+
+        <div class="section-card">
+            <div class="section-icon">🔥</div>
+            <h3>卡西法的焦虑火炉</h3>
+            <p style="color:#666; font-size:0.9em;">把你此刻的担忧写下来，卡西法会帮你吃掉！</p>
+            <div class="calcifer-box">
+                <input type="text" id="anxiety-input" placeholder="例如：背书背得想吐...">
+                <button class="calcifer-btn" onclick="burnAnxiety()">🔥 烧掉它！</button>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-icon">📝</div>
+            <h3>考前最后一套“真题”</h3>
+            
+            <div class="quiz-container" id="quiz-box">
+                </div>
+
+            <div class="quiz-controls">
+                <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+                <button class="btn-next" onclick="nextQuestion()">下一题 ➡️</button>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-icon">🎒</div>
+            <h3>出发前检查</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 1.1em;">
+                <label><input type="checkbox"> 🆔 身份证</label>
+                <label><input type="checkbox"> 🎫 准考证</label>
+                <label><input type="checkbox"> 👜 文具袋</label>
+                <label><input type="checkbox"> 🖊️ 黑笔 x3</label>
+                <label><input type="checkbox"> ✏️ 2B铅笔</label>
+                <label><input type="checkbox"> 🧽 橡皮</label>
+                <label><input type="checkbox"> 🧘‍♀️ 平常心</label>
+                <label><input type="checkbox"> ✨ 自信</label>
+            </div>
+        </div>
+
+        <div class="section-card" style="text-align: center;">
+            <h3>🎉 预支庆功券</h3>
+            <div class="scratch-wrapper">
+                <div style="position: absolute; width:100%; height:100%; top:0; left:0; display:flex; flex-direction:column; justify-content:center; align-items:center; background:#FFD54F; color:#5D4037; font-weight:bold;">
+                    <span>🎂 迟到的生日礼物</span>
+                    <span>+</span>
+                    <span>🎁 神秘大礼！</span>
+                </div>
+                <canvas id="scratch-canvas" width="280" height="140" style="position: relative; z-index: 2; cursor: pointer;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="result-modal">
+        
+        <div style="
+            background: radial-gradient(circle at center, #2b32b2 0%, #141e30 100%);
+            padding: 40px 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            font-family: 'Georgia', 'Songti SC', 'SimSun', serif;
+            color: #fff;
+            max-width: 600px;
+            width: 90%; /* 适配手机宽度 */
+            margin: 0 auto;
+            border: 1px solid #4ca1af;
+            max-height: 90vh; /* 防止太高超出屏幕 */
+            overflow-y: auto;
+        ">
+
+            <div style="
+                background: #fffaf0; /* 羊皮纸色 */
+                color: #2c3e50;
+                padding: 30px;
+                border-radius: 8px;
+                position: relative;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+                border: 2px solid #d4af37; /* 金色边框 */
+                outline: 4px double #d4af37;
+                outline-offset: -10px;
+            ">
+                
+                <div style="text-align: center; margin-bottom: 20px; color: #d4af37; font-size: 1.5em;">
+                    ✦ ☾ ✦
+                </div>
+
+                <h3 style="
+                    color: #8e44ad; 
+                    margin-top: 0; 
+                    font-size: 1.3em; 
+                    border-bottom: 1px dashed #d4af37; 
+                    padding-bottom: 10px;
+                    display: inline-block;
+                ">
+                    亲爱的李祯：
+                </h3>
+
+                <p style="line-height: 1.8; font-size: 1.05em; margin-top: 20px;">
+                    恭喜你完成了考试前的最后一套真题！我相信你已经做好了充足的准备，去面对考场上可能出现的一切艰难险阻。
+                </p>
+
+                <p style="line-height: 1.8; font-size: 1.05em;">
+                    我想引用你曾经写给我的话，作为考前的最后激励：
+                </p>
+
+                <div style="
+                    background: #fdf6e3;
+                    border-left: 4px solid #d4af37;
+                    padding: 15px 20px;
+                    margin: 20px 0;
+                    border-radius: 0 10px 10px 0;
+                    font-style: italic;
+                    color: #5d4037;
+                    position: relative;
+                ">
+                    <span style="font-size: 2em; line-height: 0.5; position: absolute; top: 10px; left: 5px; color: #d4af37; opacity: 0.5;">“</span>
+                    我想我终于在这一刻接受了命运安排的一切，接受所有不完满和不甘心。归零之后是新的一局，但我已熟知这游戏的规则。
+                    <span style="font-size: 2em; line-height: 0.5; position: absolute; bottom: -5px; right: 10px; color: #d4af37; opacity: 0.5;">”</span>
+                </div>
+
+                <p style="line-height: 1.8; font-size: 1.05em;">
+                    在这句话里，我再次见证了你的坚毅与决心。
+                </p>
+                
+                <p style="line-height: 1.8; font-size: 1.05em;">
+                    我希望，当你看到这段话的时候，可以抛下一路以来的焦虑与担忧，去拥抱这两年来沉甸甸的成长。你一定不会辜负自己的努力，我永远支持你~
+                </p>
+
+                <div style="
+                    text-align: center; 
+                    margin-top: 30px; 
+                    font-weight: bold; 
+                    color: #c0392b; 
+                    letter-spacing: 2px;
+                    font-size: 1.2em;
+                ">
+                    加油加油加油！！！ ❤️
+                </div>
+
+            </div>
+            
+            <button onclick="document.getElementById('result-modal').style.display='none'" style="width:100%; padding:15px; background:#4ca1af; color:white; border:none; border-radius:30px; margin-top:20px; cursor:pointer; font-size:1.1em; font-weight:bold; box-shadow: 0 5px 15px rgba(76, 161, 175, 0.4);">
+                💌 收下这份祝福
+            </button>
+
+        </div>
+    </div>
+
+    <div class="music-control" onclick="toggleMusic()">🎵</div>
+
+    <script>
+        // --- 核心逻辑 ---
+
+        // 0. 音频
+        const bgm = document.getElementById('bgm');
+        function enterWorld() {
+            document.getElementById('start-overlay').style.opacity = '0';
+            setTimeout(() => document.getElementById('start-overlay').remove(), 1000);
+            bgm.volume = 0.5;
+            bgm.play().catch(e => console.log("等待交互播放"));
+        }
+        function toggleMusic() { bgm.paused ? bgm.play() : bgm.pause(); }
+
+        // 1. 每日激励
+        const quotes = [
+            "今天不想学？没关系，爱因斯坦也有想摆烂的时候。",
+            "你的大脑正在疯狂扩容，发热是CPU升级的正常现象！",
+            "考研就像洗衣服，中间搅得很乱，洗完就干净清爽了。",
+            "你不是在背书，你是在往脑子里存金条！",
+            "乾坤未定，你我皆是黑马！",
+            "想想考完那天，火锅奶茶在向你疯狂招手！"
+        ];
+        function updateQuote() { document.getElementById('daily-quote').innerText = quotes[Math.floor(Math.random()*quotes.length)]; }
+        updateQuote();
+
+        // 2. 焦虑火炉
+        function burnAnxiety() {
+            const input = document.getElementById('anxiety-input');
+            const btn = document.querySelector('.calcifer-btn');
+            if(!input.value) return;
+
+            confetti({ particleCount: 60, spread: 50, origin: { y: 0.7 }, colors: ['#FF4500', '#FFA500'] });
+            
+            input.style.transition = "0.5s";
+            input.style.transform = "scale(0)";
+            btn.innerText = "🔥 吞噬中...";
+            
+            setTimeout(() => {
+                input.value = "";
+                input.style.transform = "scale(1)";
+                input.placeholder = "嗝~ 味道不错！还有吗？";
+                btn.innerText = "🔥 烧掉它！";
+            }, 1000);
+        }
+
+        // 3. 题目逻辑
+        const qs = [
+            { t: "s", q: "1. 谁会在考研中取得最理想的成绩？", o: ["李祯", "祯祯", "小祯", "以上都是"] },
+            { t: "s", q: "2. 当考试中遇到不会做或耗时很久的题目时，正确的应对方案是：", o: ["遇到困难睡大觉", "我要和它死磕到底！！！", "当场撕试卷，震惊全考场","此时不蒙更待何时，先做下一题"] },
+            { t: "s", q: "3. 名词解释题或政治大题想不起来原话，应该：", o: ["空着", "用自己的话，结合关键词，把卷子写满！", "画个海绵宝宝", "写满马克思的名字"] },
+            { t: "s", q: "4. 下列哪项是考试必备？", o: ["知识", "技巧", "相信自己配得上研究生的自信", "以上都是"] },
+            { t: "s", q: "5. 正确面对考研的心态是？", o: ["我已经做好了充足的准备，这次一定美美拿下！", "我难人亦难，我把题做完", "严肃以待的同时保持平常心", "以上都是"] },
+            { t: "s", q: "6. 英语作文如果不确定单词拼写怎么办？", o: ["生搬硬套，相信记忆力", "换同义词或近义词", "写拼音，与批卷老师对暗号", "写中文"] },
+            { t: "i", q: "7. 请输入一句你想对自己说的狠话或鼓励的话：", ph: "老娘最棒..." },
+            { t: "s", q: "8. 考试期间饮食方面应该注意什么呢？", o: ["化身恶食王，火锅奶茶一顿塞", "夏天清凉组：西瓜杨梅冻梨", "清淡、温热、七分饱的食物", "想吃什么吃什么"] },
+            { t: "i", q: "9. 考完试想做的第一件事是什么？", ph: "睡三天..." },
+            { t: "i", q: "10. 请在横线上签下你的名字，领取“好运Buff”：", ph: "签名处" },
+            { t: "s", q: "11. 你准备好去迎接你的未来了吗？", o: ["准备好了！", "时刻准备着！", "冲啊！", "我一定可以！！！"] }
+        ];
+
+        let curIdx = 0;
+        const qBox = document.getElementById('quiz-box');
+        const pFill = document.getElementById('prog-fill');
+        const nBtn = document.querySelector('.btn-next');
+
+        function renderQ() {
+            qBox.innerHTML = "";
+            qs.forEach((item, i) => {
+                const d = document.createElement('div');
+                d.className = `quiz-step ${i===0?'active':''}`;
+                let h = `<span class="quiz-question-text">${item.q}</span>`;
+                if(item.t === 's') {
+                    item.o.forEach(opt => h += `<div class="quiz-option-btn" onclick="sel(this)">${opt}</div>`);
+                } else {
+                    h += `<input class="input-line" placeholder="${item.ph}">`;
+                }
+                d.innerHTML = h;
+                qBox.appendChild(d);
+            });
+        }
+        function sel(el) {
+            Array.from(el.parentElement.children).forEach(c=>c.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+        function nextQuestion() {
+            const steps = document.querySelectorAll('.quiz-step');
+            if(curIdx === qs.length - 1) {
+                confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+                document.getElementById('result-modal').style.display = 'flex';
+                return;
+            }
+            steps[curIdx].classList.remove('active');
+            curIdx++;
+            steps[curIdx].classList.add('active');
+            pFill.style.width = `${(curIdx / (qs.length-1))*100}%`;
+            if(curIdx === qs.length - 1) {
+                nBtn.innerText = "✨ 提交试卷 ✨";
+                nBtn.style.background = "#FF8C42";
+            }
+        }
+        renderQ();
+
+        // 4. 刮刮乐
+        const cvs = document.getElementById('scratch-canvas');
+        const ctx = cvs.getContext('2d');
+        let draw = false;
+        ctx.fillStyle = '#C0C0C0';
+        ctx.fillRect(0,0,280,140);
+        ctx.fillStyle = '#666'; 
+        ctx.font='20px Arial'; 
+        ctx.fillText("✨ 刮开惊喜 ✨", 80, 80);
+
+        function scratch(e) {
+            if(!draw) return;
+            e.preventDefault();
+            const r = cvs.getBoundingClientRect();
+            const x = (e.clientX||e.touches[0].clientX) - r.left;
+            const y = (e.clientY||e.touches[0].clientY) - r.top;
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath(); ctx.arc(x,y,15,0,Math.PI*2); ctx.fill();
+        }
+        cvs.addEventListener('mousedown',()=>draw=true);
+        cvs.addEventListener('mouseup',()=>draw=false);
+        cvs.addEventListener('mousemove',scratch);
+        cvs.addEventListener('touchstart',(e)=>{draw=true;scratch(e)});
+        cvs.addEventListener('touchmove',scratch);
+        cvs.addEventListener('touchend',()=>draw=false);
+
+        // 5. 鼠标小煤球
+        document.addEventListener('mousemove', (e) => {
+            if(Math.random()>0.9) {
+                const s = document.createElement('div');
+                s.className='soot'; s.style.left=e.pageX+'px'; s.style.top=e.pageY+'px';
+                document.body.appendChild(s);
+                s.animate([{opacity:0.8, transform:'scale(0)'}, {opacity:0, transform:'translateY(-30px) scale(1.5)'}], {duration:800, fill:'forwards'});
+                setTimeout(()=>s.remove(), 800);
+            }
+        });
+
+    </script>
+</body>
+</html>
